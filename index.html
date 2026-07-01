@@ -115,7 +115,7 @@
       </div>
       <span class="count" id="count"></span>
     </div>
-    <div class="hint">Type to filter instantly · <kbd>Esc</kbd> clears the box</div>
+    <div class="hint">Just start typing anywhere · <kbd>/</kbd> jumps to search · <kbd>Esc</kbd> clears</div>
   </header>
   <ul id="list" aria-live="polite"></ul>
   <div class="empty" id="empty" style="display:none"></div>
@@ -218,10 +218,29 @@
     });
   });
 
-  // Global Escape works even if focus drifted
+  // Global keyboard: start typing anywhere and it goes to the search box
   document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape' && document.activeElement !== q){
+    if(document.activeElement === q) return;      // already typing in the box
+    if(e.metaKey || e.ctrlKey || e.altKey) return; // don't hijack shortcuts
+
+    if(e.key === 'Escape'){
       q.value=''; render(); q.focus();
+      return;
+    }
+    // '/' is an explicit "focus search" hotkey (common convention)
+    if(e.key === '/'){
+      e.preventDefault(); q.focus(); q.select();
+      return;
+    }
+    // Any single printable character focuses the box and lets it type normally
+    if(e.key.length === 1){
+      q.focus();
+      // don't preventDefault — the keystroke flows into the now-focused input
+    } else if(e.key === 'Backspace'){
+      e.preventDefault();
+      q.focus();
+      q.value = q.value.slice(0, -1);
+      render();
     }
   });
 
